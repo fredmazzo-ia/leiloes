@@ -77,13 +77,7 @@ A API expõe: `GET /api/auctions`, `GET /api/auctions/{id}`, `GET /api/lots`, `G
 
 ## Primeiro scrape (validar dados)
 
-Para popular o banco pela primeira vez (ou atualizar manualmente), use a API — sem shell:
-
-1. Abra a URL do backend no navegador (ex.: `https://leiloes-backend.xxx.easypanel.host`).
-2. Vá em **Docs** (Swagger) e chame **POST /api/run-scrape** (Execute).
-3. A resposta mostra quantos leilões e lotes foram obtidos por fonte (Calil, Vegas).
-
-Depois confira: **GET /api/stats** e **GET /api/auctions** para ver os dados.
+No **dashboard** (frontend), use o botão **Rodar scrape agora**. Ele chama a API, busca leilões (Calil e Vegas), persiste no banco e atualiza a lista na tela. Não é preciso abrir outra URL nem rodar nada em shell.
 
 ## Estrutura
 
