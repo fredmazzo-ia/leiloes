@@ -1,5 +1,6 @@
 # Build a partir da raiz do repositório (contexto = .)
 # Usar no Easy Panel: Dockerfile = Dockerfile.backend, contexto = raiz
+# Se der erro "parent snapshot does not exist", fazer rebuild sem cache no painel
 FROM python:3.11-slim
 
 WORKDIR /app
