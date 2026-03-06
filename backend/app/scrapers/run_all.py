@@ -1,6 +1,7 @@
 """
 Executa todos os scrapers e persiste no banco.
 Uso: python -m app.scrapers.run_all
+Ou: POST /api/run-scrape (pela API).
 """
 import asyncio
 import os
@@ -10,29 +11,31 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 
-from app.config import settings
-from app.models.database import Base
+from app.models.database import Base, engine, AsyncSessionLocal
 from app.models.schemas import AuctionModel, LotModel
 from app.scrapers.calil import CalilScraper
 from app.scrapers.vegas import VegasScraper
 
 
 async def run_all():
-    engine = create_async_engine(settings.database_url, echo=False)
+    """Retorna dict com total_auctions, total_lots, by_source e errors."""
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-    AsyncSessionLocal = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
     scrapers = [CalilScraper(), VegasScraper()]
+    summary = {"total_auctions": 0, "total_lots": 0, "by_source": {}, "errors": []}
 
     async with AsyncSessionLocal() as session:
         for scraper in scrapers:
             try:
                 print(f"Executando scraper: {scraper.source_name}...")
                 auctions = await scraper.scrape()
-                print(f"  -> {len(auctions)} leilão(ões), {sum(len(a.lots) for a in auctions)} lote(s)")
+                n_auctions, n_lots = len(auctions), sum(len(a.lots) for a in auctions)
+                print(f"  -> {n_auctions} leilão(ões), {n_lots} lote(s)")
+                summary["by_source"][scraper.source_name] = {"auctions": n_auctions, "lots": n_lots}
+                summary["total_auctions"] += n_auctions
+                summary["total_lots"] += n_lots
                 for sa in auctions:
                     result = await session.execute(
                         select(AuctionModel).where(
@@ -89,9 +92,10 @@ async def run_all():
             except Exception as e:
                 await session.rollback()
                 print(f"Erro no scraper {scraper.source_name}: {e}")
+                summary["errors"].append({"source": scraper.source_name, "error": str(e)})
             await asyncio.sleep(1)  # Respeito entre fontes
-    await engine.dispose()
     print("Scrapers concluídos.")
+    return summary
 
 
 if __name__ == "__main__":

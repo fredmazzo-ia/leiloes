@@ -98,3 +98,15 @@ async def stats(db: AsyncSession = Depends(get_db)):
 @router.get("/health")
 async def health():
     return {"status": "ok"}
+
+
+@router.post("/run-scrape")
+async def run_scrape():
+    """
+    Dispara a execução de todos os scrapers (Calil, Vegas) e persiste no banco.
+    Use para validar o primeiro scrape ou atualizar dados manualmente.
+    Pode demorar alguns segundos.
+    """
+    from app.scrapers.run_all import run_all
+    summary = await run_all()
+    return {"status": "ok", **summary}

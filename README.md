@@ -64,6 +64,27 @@ No painel, configure só as variáveis de ambiente de cada serviço:
 
 Não é preciso rodar nada em shell; tudo ocorre na implantação.
 
+## Tabelas (PostgreSQL)
+
+O backend cria automaticamente duas tabelas ao subir:
+
+| Tabela    | Descrição |
+|-----------|-----------|
+| **auctions** | Leilões (fonte: calil, vegas). Campos: id, external_id, source, title, url, description, starts_at, ends_at, created_at, updated_at. |
+| **lots**     | Lotes de cada leilão. Campos: id, auction_id, external_id, title, description, category, minimum_bid, current_bid, reference_value, url, raw_data, created_at, updated_at. |
+
+A API expõe: `GET /api/auctions`, `GET /api/auctions/{id}`, `GET /api/lots`, `GET /api/stats`, `GET /docs` (Swagger).
+
+## Primeiro scrape (validar dados)
+
+Para popular o banco pela primeira vez (ou atualizar manualmente), use a API — sem shell:
+
+1. Abra a URL do backend no navegador (ex.: `https://leiloes-backend.xxx.easypanel.host`).
+2. Vá em **Docs** (Swagger) e chame **POST /api/run-scrape** (Execute).
+3. A resposta mostra quantos leilões e lotes foram obtidos por fonte (Calil, Vegas).
+
+Depois confira: **GET /api/stats** e **GET /api/auctions** para ver os dados.
+
 ## Estrutura
 
 ```
