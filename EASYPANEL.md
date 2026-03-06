@@ -13,6 +13,7 @@ Tudo roda na implantação: você conecta o repositório, o Easy Panel faz o bui
 - **Backend:** `DATABASE_URL` — URL normal do PostgreSQL, por exemplo:  
   `postgresql://usuario:senha@host:5432/nome_do_banco`  
   (a mesma URL que o Easy Panel ou seu provedor de banco mostra.)
-- **Frontend:** `NEXT_PUBLIC_API_URL` — URL pública do backend (ex.: `https://leiloes-backend.xxx.easypanel.host`).
+- **Frontend:** `NEXT_PUBLIC_API_URL` — URL pública do backend (ex.: `https://leiloes-backend.xxx.easypanel.host`).  
+  **Importante:** no Next.js essa variável é usada no **build**. Se o painel tiver "Build args" ou "Variáveis de build", defina `NEXT_PUBLIC_API_URL` também lá com a mesma URL. Depois de alterar, faça **Implantar** de novo no frontend para que o build use a URL correta.
 
 Nada de shell: as variáveis são definidas na interface do Easy Panel em cada serviço.

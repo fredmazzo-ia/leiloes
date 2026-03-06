@@ -1,8 +1,11 @@
 # Build a partir da raiz do repositório (contexto = .)
 # Usar no Easy Panel: Dockerfile = Dockerfile.frontend, contexto = raiz
+# NEXT_PUBLIC_API_URL deve ser passado como build arg (no painel: variável de ambiente já conta se o painel injeta no build)
 FROM node:20-alpine AS base
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci
 COPY frontend/ .
