@@ -1,0 +1,89 @@
+from typing import Optional
+
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy import select, func
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.models.database import get_db
+from app.models.schemas import AuctionModel, LotModel
+from app.api.schemas import AuctionOut, AuctionDetailOut, LotOut
+
+router = APIRouter(prefix="/api", tags=["api"])
+
+
+@router.get("/auctions", response_model=list[AuctionOut])
+async def list_auctions(
+    source: Optional[str] = Query(None, description="Filtrar por fonte: calil, vegas"),
+    limit: int = Query(50, le=100),
+    offset: int = Query(0, ge=0),
+    db: AsyncSession = Depends(get_db),
+):
+    q = select(AuctionModel).order_by(AuctionModel.updated_at.desc()).limit(limit).offset(offset)
+    if source:
+        q = q.where(AuctionModel.source == source)
+    result = await db.execute(q)
+    auctions = result.scalars().all()
+    out = []
+    for a in auctions:
+        count = await db.execute(select(func.count(LotModel.id)).where(LotModel.auction_id == a.id))
+        lots_count = count.scalar() or 0
+        out.append(AuctionOut(
+            id=a.id,
+            external_id=a.external_id,
+            source=a.source,
+            title=a.title,
+            url=a.url,
+            description=a.description,
+            starts_at=a.starts_at,
+            ends_at=a.ends_at,
+            lots_count=lots_count,
+            updated_at=a.updated_at,
+        ))
+    return out
+
+
+@router.get("/auctions/{auction_id}", response_model=AuctionDetailOut)
+async def get_auction(auction_id: int, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(AuctionModel).where(AuctionModel.id == auction_id))
+    auction = result.scalar_one_or_none()
+    if not auction:
+        from fastapi import HTTPException
+        raise HTTPException(404, "Leilão não encontrado")
+    lots_result = await db.execute(select(LotModel).where(LotModel.auction_id == auction_id).order_by(LotModel.id))
+    lots = lots_result.scalars().all()
+    return AuctionDetailOut(
+        id=auction.id,
+        external_id=auction.external_id,
+        source=auction.source,
+        title=auction.title,
+        url=auction.url,
+        description=auction.description,
+        starts_at=auction.starts_at,
+        ends_at=auction.ends_at,
+        lots_count=len(lots),
+        updated_at=auction.updated_at,
+        lots=[LotOut.model_validate(l) for l in lots],
+    )
+
+
+@router.get("/lots", response_model=list[LotOut])
+async def list_lots(
+    auction_id: Optional[int] = Query(None),
+    source: Optional[str] = Query(None),
+    limit: int = Query(50, le=100),
+    offset: int = Query(0, ge=0),
+    db: AsyncSession = Depends(get_db),
+):
+    q = select(LotModel).order_by(LotModel.updated_at.desc()).limit(limit).offset(offset)
+    if auction_id:
+        q = q.where(LotModel.auction_id == auction_id)
+    if source:
+        q = q.join(AuctionModel, LotModel.auction_id == AuctionModel.id).where(AuctionModel.source == source)
+    result = await db.execute(q)
+    lots = result.scalars().all()
+    return [LotOut.model_validate(l) for l in lots]
+
+
+@router.get("/health")
+async def health():
+    return {"status": "ok"}

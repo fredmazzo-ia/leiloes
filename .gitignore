@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+env/
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Node
+node_modules/
+.next/
+out/
+.nuxt/
+dist/
+*.local
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs e dados local
+*.log
+*.sqlite
+*.db
+data/
+
+# Playwright
+playwright-report/
+test-results/
+.playwright/
