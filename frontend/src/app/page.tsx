@@ -47,7 +47,7 @@ export default function Home() {
         setStats(statsData);
         setError(null);
       })
-      .catch((e) => setError(e.message))
+      .catch((e) => setError(e.message === 'Failed to fetch' ? 'Não foi possível conectar ao backend. Verifique NEXT_PUBLIC_API_URL (URL pública do backend).' : e.message))
       .finally(() => setLoading(false));
   }, [source]);
 
@@ -63,8 +63,11 @@ export default function Home() {
     setScrapeLoading(true);
     setScrapeResult(null);
     setScrapeError(null);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 120_000); // 2 min para o scrape
     try {
-      const res = await fetch(`${API_URL}/api/run-scrape`, { method: 'POST' });
+      const res = await fetch(`${API_URL}/api/run-scrape`, { method: 'POST', signal: controller.signal });
+      clearTimeout(timeoutId);
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || 'Falha ao rodar scrape');
       setScrapeResult(data);
@@ -76,7 +79,12 @@ export default function Home() {
       setAuctions(auctionsData);
       setStats(statsData);
     } catch (e) {
-      setScrapeError(e instanceof Error ? e.message : 'Erro ao rodar scrape');
+      clearTimeout(timeoutId);
+      if (e instanceof Error) {
+        if (e.name === 'AbortError') setScrapeError('Scrape demorou mais de 2 minutos. Tente de novo.');
+        else if (e.message === 'Failed to fetch') setScrapeError('Não foi possível conectar ao backend. Verifique se a URL da API (NEXT_PUBLIC_API_URL) é a URL pública do backend e está acessível.');
+        else setScrapeError(e.message);
+      } else setScrapeError('Erro ao rodar scrape');
     } finally {
       setScrapeLoading(false);
       setLoading(false);
