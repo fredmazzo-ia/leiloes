@@ -5,11 +5,12 @@ from sqlalchemy.orm import DeclarativeBase
 from app.config import settings
 
 
-# Garantir que o diretório data existe (para SQLite)
-db_path = settings.database_url.replace("sqlite+aiosqlite:///", "")
-if db_path.startswith("."):
-    data_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data")
-    os.makedirs(data_dir, exist_ok=True)
+# Diretório data só para SQLite (legado); PostgreSQL usa DATABASE_URL diretamente
+if "sqlite" in settings.database_url:
+    db_path = settings.database_url.replace("sqlite+aiosqlite:///", "")
+    if db_path.startswith("."):
+        data_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data")
+        os.makedirs(data_dir, exist_ok=True)
 
 engine = create_async_engine(
     settings.database_url,

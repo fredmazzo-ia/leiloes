@@ -1,12 +1,27 @@
 services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: leiloes
+      POSTGRES_PASSWORD: leiloes
+      POSTGRES_DB: leiloes
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U leiloes -d leiloes"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   backend:
     build: ./backend
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=sqlite+aiosqlite:///./data/leiloes.db
-    volumes:
-      - backend_data:/app/data
+      - DATABASE_URL=postgresql+asyncpg://leiloes:leiloes@postgres:5432/leiloes
+    depends_on:
+      postgres:
+        condition: service_healthy
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000
 
   frontend:
@@ -21,13 +36,14 @@ services:
   # Job de scraping (opcional: rodar em cron ou manual)
   scraper:
     build: ./backend
-    volumes:
-      - backend_data:/app/data
     environment:
-      - DATABASE_URL=sqlite+aiosqlite:///./data/leiloes.db
+      - DATABASE_URL=postgresql+asyncpg://leiloes:leiloes@postgres:5432/leiloes
+    depends_on:
+      postgres:
+        condition: service_healthy
     command: python -m app.scrapers.run_all
     profiles:
       - scrape
 
 volumes:
-  backend_data:
+  postgres_data:

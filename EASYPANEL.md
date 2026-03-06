@@ -8,8 +8,8 @@ O Easy Panel usa a **raiz do repositório** como contexto de build. Use os Docke
 - **Dockerfile:** `Dockerfile.backend` (na raiz do repo)
 - **Contexto / Root:** raiz do repositório (padrão)
 - **Porta:** 8000
-- **Variável:** `DATABASE_URL=sqlite+aiosqlite:///./data/leiloes.db`
-- **Volume:** montar em `/app/data` para persistir o SQLite
+- **Variável:** `DATABASE_URL=postgresql+asyncpg://USER:PASSWORD@HOST:5432/DBNAME` (ex.: serviço PostgreSQL do Easy Panel ou externo)
+- **PostgreSQL:** criar um serviço/banco PostgreSQL no Easy Panel e usar a URL de conexão fornecida
 
 ## Frontend
 
@@ -32,6 +32,7 @@ Para atualizar os dados periodicamente:
 - Crie um **Cron** ou **scheduled job** no Easy Panel que rode:
   - Imagem: mesma do backend
   - Comando: `python -m app.scrapers.run_all`
-  - Volume: mesmo volume de dados do backend (`/app/data`)
+  - Variável: mesma `DATABASE_URL` (PostgreSQL) do backend
 
-Ou use o perfil do compose: `docker compose --profile scrape run scraper`.
+Ou use o perfil do compose: `docker compose --profile scrape run scraper`.  
+Configure a mesma `DATABASE_URL` (PostgreSQL) no job de scraper.

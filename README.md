@@ -4,7 +4,7 @@ Dashboard que agrega informações de sites de leilões (Calil, Vegas, etc.), ar
 
 ## Stack
 
-- **Backend**: Python, FastAPI, SQLite (MVP), scrapers (Playwright/BeautifulSoup)
+- **Backend**: Python, FastAPI, PostgreSQL, scrapers (Playwright/BeautifulSoup)
 - **Frontend**: Next.js (dashboard)
 - **Deploy**: Docker Compose — local e [Easy Panel](https://easypanel.io)
 
@@ -72,9 +72,11 @@ python -m app.scrapers.run_all
 
 3. **Variáveis de ambiente** (produção):
    - No serviço **frontend**: `NEXT_PUBLIC_API_URL=https://sua-api.easypanel.xxx` (URL pública do backend).
-   - No **backend**: manter `DATABASE_URL` se usar volume para SQLite.
+   - No **backend**: configurar `DATABASE_URL` com a URL do PostgreSQL (ex.: serviço no Easy Panel).
 
-4. **Scraper agendado**: use o serviço `scraper` com profile ou crie um Cron no Easy Panel para rodar periodicamente:
+4. **PostgreSQL**: no Easy Panel, crie um banco PostgreSQL e defina `DATABASE_URL` no backend e no job de scraper (ex.: `postgresql+asyncpg://user:senha@host:5432/leiloes`).
+
+5. **Scraper agendado**: use o serviço `scraper` com profile ou crie um Cron no Easy Panel para rodar periodicamente:
    ```bash
    docker compose --profile scrape run scraper
    ```

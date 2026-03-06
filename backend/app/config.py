@@ -2,7 +2,7 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    database_url: str = "sqlite+aiosqlite:///./data/leiloes.db"
+    database_url: str = "postgresql+asyncpg://leiloes:leiloes@localhost:5432/leiloes"
 
     class Config:
         env_file = ".env"
