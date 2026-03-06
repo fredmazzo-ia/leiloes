@@ -14,6 +14,13 @@ if "sqlite" in settings.database_url:
 
 # Aceitar URL padrão (postgresql:// ou postgres://) e converter para o driver async
 _db_url = settings.database_url
+# asyncpg não usa sslmode=disable na URL; tratar e passar ssl no connect_args
+_connect_args = {}
+if "sslmode=disable" in _db_url:
+    _db_url = _db_url.replace("?sslmode=disable", "").replace("&sslmode=disable", "")
+    if _db_url.endswith("?"):
+        _db_url = _db_url[:-1]
+    _connect_args["ssl"] = False
 if _db_url.startswith("postgresql://") and "+asyncpg" not in _db_url:
     _db_url = _db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
 elif _db_url.startswith("postgres://"):
@@ -22,6 +29,7 @@ elif _db_url.startswith("postgres://"):
 engine = create_async_engine(
     _db_url,
     echo=False,
+    connect_args=_connect_args,
 )
 
 AsyncSessionLocal = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
