@@ -1,38 +1,18 @@
 # Deploy no Easy Panel
 
-O Easy Panel usa a **raiz do repositório** como contexto de build. Use os Dockerfiles na raiz:
+Tudo roda na implantação: você conecta o repositório, o Easy Panel faz o build e sobe os serviços. Configure só as variáveis de ambiente no painel.
 
-## Backend
+## Serviços
 
-- **Repositório:** mesmo para os dois serviços
-- **Dockerfile:** `Dockerfile.backend` (na raiz do repo)
-- **Contexto / Root:** raiz do repositório (padrão)
-- **Porta:** 8000
-- **Variável:** `DATABASE_URL=postgresql+asyncpg://USER:PASSWORD@HOST:5432/DBNAME` (ex.: serviço PostgreSQL do Easy Panel ou externo)
-- **PostgreSQL:** criar um serviço/banco PostgreSQL no Easy Panel e usar a URL de conexão fornecida
+- **Backend:** Dockerfile `Dockerfile.backend`, contexto = raiz do repo, porta 8000.
+- **Frontend:** Dockerfile `Dockerfile.frontend`, contexto = raiz do repo, porta 3000.
+- **PostgreSQL:** crie um banco no Easy Panel (ou use um externo) e use a URL que o painel fornece.
 
-## Frontend
+## Variáveis de ambiente (no painel do Easy Panel)
 
-- **Dockerfile:** `Dockerfile.frontend` (na raiz do repo)
-- **Contexto / Root:** raiz do repositório (padrão)
-- **Porta:** 3000
-- **Variável:** `NEXT_PUBLIC_API_URL=https://url-publica-do-backend` (URL do serviço backend no Easy Panel)
+- **Backend:** `DATABASE_URL` — URL normal do PostgreSQL, por exemplo:  
+  `postgresql://usuario:senha@host:5432/nome_do_banco`  
+  (a mesma URL que o Easy Panel ou seu provedor de banco mostra.)
+- **Frontend:** `NEXT_PUBLIC_API_URL` — URL pública do backend (ex.: `https://leiloes-backend.xxx.easypanel.host`).
 
-## Opção 2: Docker Compose
-
-Se o Easy Panel suportar import de **Docker Compose**:
-
-- Use o `docker-compose.yml` da raiz.
-- Ajuste `NEXT_PUBLIC_API_URL` no serviço `frontend` para a URL do backend em produção (ex.: `https://backend.seudominio.com`).
-
-## Scraper (agendado)
-
-Para atualizar os dados periodicamente:
-
-- Crie um **Cron** ou **scheduled job** no Easy Panel que rode:
-  - Imagem: mesma do backend
-  - Comando: `python -m app.scrapers.run_all`
-  - Variável: mesma `DATABASE_URL` (PostgreSQL) do backend
-
-Ou use o perfil do compose: `docker compose --profile scrape run scraper`.  
-Configure a mesma `DATABASE_URL` (PostgreSQL) no job de scraper.
+Nada de shell: as variáveis são definidas na interface do Easy Panel em cada serviço.

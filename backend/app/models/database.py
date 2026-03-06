@@ -12,8 +12,15 @@ if "sqlite" in settings.database_url:
         data_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data")
         os.makedirs(data_dir, exist_ok=True)
 
+# Aceitar URL padrão (postgresql:// ou postgres://) e converter para o driver async
+_db_url = settings.database_url
+if _db_url.startswith("postgresql://") and "+asyncpg" not in _db_url:
+    _db_url = _db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+elif _db_url.startswith("postgres://"):
+    _db_url = "postgresql+asyncpg://" + _db_url[len("postgres://") :]
+
 engine = create_async_engine(
-    settings.database_url,
+    _db_url,
     echo=False,
 )
 

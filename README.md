@@ -55,31 +55,14 @@ python -m app.scrapers.run_all
 
 ## Deploy no Easy Panel
 
-1. **GitHub**: crie um repositório e envie o código:
-   ```bash
-   git init
-   git add .
-   git commit -m "MVP Leilões - dashboard e scrapers"
-   git remote add origin https://github.com/SEU_USUARIO/leiloes.git
-   git branch -M main
-   git push -u origin main
-   ```
+Envie o código para o GitHub. No Easy Panel, conecte o repositório ao projeto: o painel faz o build e a implantação automaticamente.
 
-2. **Easy Panel**: no painel do servidor:
-   - **Create** → **App** → escolha **Docker Compose** ou **Template**.
-   - Conecte o repositório GitHub (ou cole o conteúdo do `docker-compose.yml`).
-   - O Easy Panel fará build das imagens e subirá `backend` e `frontend`.
+No painel, configure só as variáveis de ambiente de cada serviço:
 
-3. **Variáveis de ambiente** (produção):
-   - No serviço **frontend**: `NEXT_PUBLIC_API_URL=https://sua-api.easypanel.xxx` (URL pública do backend).
-   - No **backend**: configurar `DATABASE_URL` com a URL do PostgreSQL (ex.: serviço no Easy Panel).
+- **Backend:** `DATABASE_URL` com a URL do PostgreSQL (ex.: `postgresql://usuario:senha@host:5432/banco` — a URL normal que o painel ou o provedor do banco fornece).
+- **Frontend:** `NEXT_PUBLIC_API_URL` com a URL pública do backend.
 
-4. **PostgreSQL**: no Easy Panel, crie um banco PostgreSQL e defina `DATABASE_URL` no backend e no job de scraper (ex.: `postgresql+asyncpg://user:senha@host:5432/leiloes`).
-
-5. **Scraper agendado**: use o serviço `scraper` com profile ou crie um Cron no Easy Panel para rodar periodicamente:
-   ```bash
-   docker compose --profile scrape run scraper
-   ```
+Não é preciso rodar nada em shell; tudo ocorre na implantação.
 
 ## Estrutura
 
