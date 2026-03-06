@@ -1,19 +1,22 @@
 # Deploy no Easy Panel
 
-## Opção 1: Dois serviços (recomendado)
+O Easy Panel usa a **raiz do repositório** como contexto de build. Use os Dockerfiles na raiz:
 
-No Easy Panel você pode criar **dois apps** a partir do mesmo repositório:
+## Backend
 
-1. **Backend**
-   - Build: Dockerfile em `./backend`
-   - Porta: 8000
-   - Variável: `DATABASE_URL=sqlite+aiosqlite:///./data/leiloes.db`
-   - Volume: montar um volume em `/app/data` para persistir o SQLite
+- **Repositório:** mesmo para os dois serviços
+- **Dockerfile:** `Dockerfile.backend` (na raiz do repo)
+- **Contexto / Root:** raiz do repositório (padrão)
+- **Porta:** 8000
+- **Variável:** `DATABASE_URL=sqlite+aiosqlite:///./data/leiloes.db`
+- **Volume:** montar em `/app/data` para persistir o SQLite
 
-2. **Frontend**
-   - Build: Dockerfile em `./frontend`
-   - Porta: 3000
-   - Variável: `NEXT_PUBLIC_API_URL=https://url-do-seu-backend` (URL pública do backend no Easy Panel)
+## Frontend
+
+- **Dockerfile:** `Dockerfile.frontend` (na raiz do repo)
+- **Contexto / Root:** raiz do repositório (padrão)
+- **Porta:** 3000
+- **Variável:** `NEXT_PUBLIC_API_URL=https://url-publica-do-backend` (URL do serviço backend no Easy Panel)
 
 ## Opção 2: Docker Compose
 
