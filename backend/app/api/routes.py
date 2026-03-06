@@ -84,6 +84,17 @@ async def list_lots(
     return [LotOut.model_validate(l) for l in lots]
 
 
+@router.get("/stats")
+async def stats(db: AsyncSession = Depends(get_db)):
+    """Total de leilões e lotes para o dashboard."""
+    r_auctions = await db.execute(select(func.count(AuctionModel.id)))
+    r_lots = await db.execute(select(func.count(LotModel.id)))
+    return {
+        "total_auctions": r_auctions.scalar() or 0,
+        "total_lots": r_lots.scalar() or 0,
+    }
+
+
 @router.get("/health")
 async def health():
     return {"status": "ok"}

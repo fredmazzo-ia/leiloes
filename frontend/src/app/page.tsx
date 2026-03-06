@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
@@ -14,8 +15,11 @@ type Auction = {
   updated_at: string;
 };
 
+type Stats = { total_auctions: number; total_lots: number } | null;
+
 export default function Home() {
   const [auctions, setAuctions] = useState<Auction[]>([]);
+  const [stats, setStats] = useState<Stats>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [source, setSource] = useState<string>('');
@@ -23,13 +27,13 @@ export default function Home() {
   useEffect(() => {
     const params = new URLSearchParams();
     if (source) params.set('source', source);
-    fetch(`${API_URL}/api/auctions?${params}`)
-      .then((res) => {
-        if (!res.ok) throw new Error('Falha ao carregar leilões');
-        return res.json();
-      })
-      .then((data) => {
+    Promise.all([
+      fetch(`${API_URL}/api/auctions?${params}`).then((r) => (r.ok ? r.json() : Promise.reject(new Error('Falha ao carregar')))),
+      fetch(`${API_URL}/api/stats`).then((r) => (r.ok ? r.json() : null)),
+    ])
+      .then(([data, statsData]) => {
         setAuctions(data);
+        setStats(statsData);
         setError(null);
       })
       .catch((e) => setError(e.message))
@@ -73,6 +77,12 @@ export default function Home() {
         </p>
       )}
 
+      {!loading && stats && (
+        <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '1rem' }}>
+          <strong>{stats.total_auctions}</strong> leilão(ões) · <strong>{stats.total_lots}</strong> lote(s) no banco
+        </p>
+      )}
+
       {!loading && !error && auctions.length > 0 && (
         <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: '1rem' }}>
           {auctions.map((a) => (
@@ -95,15 +105,17 @@ export default function Home() {
                 </div>
                 <span style={{ fontSize: '0.85rem', color: '#666' }}>{a.lots_count} lote(s)</span>
               </div>
-              <div style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: '#666' }}>
-                Atualizado: {formatDate(a.updated_at)}
+              <div style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: '#666', display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
+                <span>Atualizado: {formatDate(a.updated_at)}</span>
+                {a.lots_count > 0 && (
+                  <Link href={`/leilao/${a.id}`} style={{ color: '#1a1a2e', fontWeight: 500 }}>
+                    Ver lotes →
+                  </Link>
+                )}
                 {a.url && (
-                  <>
-                    {' · '}
-                    <a href={a.url} target="_blank" rel="noopener noreferrer" style={{ color: '#1a1a2e' }}>
-                      Ver no site
-                    </a>
-                  </>
+                  <a href={a.url} target="_blank" rel="noopener noreferrer" style={{ color: '#1a1a2e' }}>
+                    Ver no site
+                  </a>
                 )}
               </div>
             </li>

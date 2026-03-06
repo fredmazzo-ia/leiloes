@@ -30,7 +30,9 @@ async def run_all():
     async with AsyncSessionLocal() as session:
         for scraper in scrapers:
             try:
+                print(f"Executando scraper: {scraper.source_name}...")
                 auctions = await scraper.scrape()
+                print(f"  -> {len(auctions)} leilão(ões), {sum(len(a.lots) for a in auctions)} lote(s)")
                 for sa in auctions:
                     result = await session.execute(
                         select(AuctionModel).where(
@@ -87,6 +89,7 @@ async def run_all():
             except Exception as e:
                 await session.rollback()
                 print(f"Erro no scraper {scraper.source_name}: {e}")
+            await asyncio.sleep(1)  # Respeito entre fontes
     await engine.dispose()
     print("Scrapers concluídos.")
 
